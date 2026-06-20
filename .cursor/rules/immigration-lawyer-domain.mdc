@@ -1,0 +1,18 @@
+---
+description: Domain rules for Australian immigration lawyer assistant platform
+globs:
+  - "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Immigration Lawyer Domain Rules
+
+When modifying this codebase:
+
+- AI prompts and agents must never guarantee visa approval or invent client facts
+- All AI-generated content requires lawyer review before client or Home Affairs use
+- Use `[NEEDS CLIENT INPUT]` for missing information in drafts
+- Validate user input with Zod at API boundaries
+- Enforce case access via `userHasCaseAccess()` — never trust client-provided caseId alone
+- Dev Auth (`AUTH_MODE=dev`) is for local development only
+- Australian English for all user-facing legal document output

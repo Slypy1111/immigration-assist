@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  LAWYER
+  PARALEGAL
+  CLIENT
+}
+
+enum CaseStatus {
+  INTAKE
+  COLLECTING
+  DRAFTING
+  REVIEW
+  READY
+}
+
+enum ChecklistItemStatus {
+  PENDING
+  UPLOADED
+  VERIFIED
+  REJECTED
+  WAIVED
+}
+
+enum DraftStatus {
+  DRAFT
+  APPROVED
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  cases         Case[]
+  visaTemplates VisaTemplate[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  clerkId        String   @unique
+  email          String
+  firstName      String?
+  lastName       String?
+  role           UserRole @default(CLIENT)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  caseMembers   CaseMember[]
+  messagesSent  Message[]    @relation("MessageSender")
+  assignedCases Case[]       @relation("AssignedLawyer")
+  auditLogs     AuditLog[]
+}
+
+model VisaTemplate {
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  code           String        @unique
+  name           String
+  description    String?
+  intakeSchema   Json
+  draftTypes     Json
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  checklistItems ChecklistItemTemplate[]
+  cases          Case[]
+}
+
+model ChecklistItemTemplate {
+  id             String       @id @default(cuid())
+  visaTemplateId String
+  visaTemplate   VisaTemplate @relation(fields: [visaTemplateId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  required       Boolean      @default(true)
+  sortOrder      Int          @default(0)
+}
+
+model Case {
+  id               String     @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  visaTemplateId   String
+  visaTemplate     VisaTemplate @relation(fields: [visaTemplateId], references: [id])
+  title            String
+  status           CaseStatus @default(INTAKE)
+  assignedLawyerId String?
+  assignedLawyer   User?      @relation("AssignedLawyer", fields: [assignedLawyerId], references: [id], onDelete: SetNull)
+  clientEmail      String?
+  dueDate          DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  members        CaseMember[]
+  checklistItems CaseChecklistItem[]
+  documents      Document[]
+  messages       Message[]
+  intakeResponse IntakeResponse?
+  drafts         Draft[]
+}
+
+model CaseMember {
+  id     String @id @default(cuid())
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, userId])
+}
+
+model CaseChecklistItem {
+  id             String              @id @default(cuid())
+  caseId         String
+  case           Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  templateItemId String?
+  title          String
+  description    String?
+  required       Boolean             @default(true)
+  status         ChecklistItemStatus @default(PENDING)
+  lawyerFeedback String?
+  sortOrder      Int                 @default(0)
+  documents      Document[]
+}
+
+model Document {
+  id              String             @id @default(cuid())
+  caseId          String
+  case            Case               @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  checklistItemId String?
+  checklistItem   CaseChecklistItem? @relation(fields: [checklistItemId], references: [id], onDelete: SetNull)
+  fileName        String
+  fileKey         String
+  mimeType        String
+  fileSize        Int
+  extractedText   String?            @db.Text
+  uploadedById    String?
+  createdAt       DateTime           @default(now())
+}
+
+model IntakeResponse {
+  id        String   @id @default(cuid())
+  caseId    String   @unique
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  data      Json     @default("{}")
+  completed Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Draft {
+  id        String      @id @default(cuid())
+  caseId    String
+  case      Case        @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  draftType String
+  title     String
+  status    DraftStatus @default(DRAFT)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  versions DraftVersion[]
+}
+
+model DraftVersion {
+  id          String   @id @default(cuid())
+  draftId     String
+  draft       Draft    @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  modelUsed   String?
+  promptHash  String?
+  createdById String?
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action       String
+  resourceType String
+  resourceId   String
+  metadata     Json?
+  createdAt    DateTime @default(now())
+}
+
+model AiDraftRateLimit {
+  id        String   @id @default(cuid())
+  caseId    String
+  count     Int      @default(0)
+  windowStart DateTime @default(now())
+
+  @@unique([caseId])
+}
