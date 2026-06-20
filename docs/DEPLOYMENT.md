@@ -21,10 +21,14 @@ npm run setup
 
 ## 2. Vercel
 
-1. Push repo to GitHub
-2. [vercel.com/new](https://vercel.com/new) → Import repository
-3. Framework: Next.js (auto-detected)
-4. Environment variables:
+Repository: [github.com/Slypy1111/immigration-assist](https://github.com/Slypy1111/immigration-assist)
+
+**One-click import:** [Import on Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSlypy1111%2Fimmigration-assist)
+
+Or run `powershell -ExecutionPolicy Bypass -File scripts/deploy-vercel.ps1` (opens instructions; CLI deploy if network allows).
+
+1. Framework: Next.js (auto-detected via `vercel.json`)
+2. Environment variables:
 
 | Variable | Example |
 |----------|---------|
@@ -34,7 +38,7 @@ npm run setup
 | `MOCK_AI` | `true` |
 | `NEXT_PUBLIC_APP_URL` | `https://your-project.vercel.app` |
 
-5. Deploy — build runs `prisma migrate deploy` automatically
+3. Deploy — `npm run build` runs `prisma migrate deploy` automatically
 
 ## 3. Share with lawyers
 

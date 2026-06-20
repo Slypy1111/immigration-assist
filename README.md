@@ -60,15 +60,19 @@ Open [http://localhost:3000/dev-login](http://localhost:3000/dev-login) → **En
 
 ## Deploy to Vercel (share link with lawyers)
 
-1. Push this repo to GitHub
-2. Import project in [Vercel](https://vercel.com)
-3. Set environment variables (same as `.env`):
+Repo: [github.com/Slypy1111/immigration-assist](https://github.com/Slypy1111/immigration-assist)
+
+1. [Import on Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSlypy1111%2Fimmigration-assist) (or run `scripts/deploy-vercel.ps1`)
+2. Set environment variables (same as `.env`):
    - `DATABASE_URL` — Neon production connection string
    - `AUTH_MODE` — `dev` (internal demo) or `clerk` (real accounts)
    - `MOCK_AI=true` for demos without OpenAI cost
    - `NEXT_PUBLIC_APP_URL` — `https://your-app.vercel.app`
-4. Deploy — `npm run build` runs migrations automatically
-5. Share `https://your-app.vercel.app` and [Lawyer Guide](/help) with your team
+   - `NEXT_PUBLIC_AUTH_MODE` — same as `AUTH_MODE`
+3. Deploy — `npm run build` runs migrations automatically
+4. Share `https://your-app.vercel.app` and `/help` with your team
+
+Full guide: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ### File uploads on Vercel
 
