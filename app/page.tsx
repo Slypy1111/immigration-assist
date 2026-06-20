@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Scale, FileText, Users, Sparkles } from "lucide-react";
-import { isAuthenticated, getLoginUrl } from "@/lib/auth";
+import {
+  isAuthenticated,
+  getLoginUrl,
+  getCurrentAppUser,
+  isLawyerRole,
+} from "@/lib/auth";
 import { isDevAuthMode } from "@/lib/auth/config";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +18,11 @@ import {
 
 export default async function HomePage() {
   if (await isAuthenticated()) {
-    redirect("/lawyer");
+    const user = await getCurrentAppUser();
+    if (user && isLawyerRole(user.role)) {
+      redirect("/lawyer");
+    }
+    redirect("/client");
   }
 
   const loginUrl = await getLoginUrl();

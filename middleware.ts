@@ -21,6 +21,8 @@ function isDevPublicPath(pathname: string): boolean {
     pathname === "/" ||
     pathname.startsWith("/dev-login") ||
     pathname.startsWith("/setup/clerk") ||
+    pathname.startsWith("/api/health") ||
+    pathname.startsWith("/help") ||
     pathname.startsWith("/api/webhooks")
   );
 }
