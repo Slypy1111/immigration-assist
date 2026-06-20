@@ -2,6 +2,28 @@
 
 Use this document when sharing ImmigrationAssist with your team.
 
+## Vercel one-click deploy (required for public URL)
+
+This machine cannot reach vercel.com directly. Deploy from your browser:
+
+**[Import on Vercel →](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSlypy1111%2Fimmigration-assist)**
+
+After import, paste the same `DATABASE_URL` from your local `.env` into Vercel Environment Variables, plus:
+
+```
+AUTH_MODE=dev
+NEXT_PUBLIC_AUTH_MODE=dev
+MOCK_AI=true
+NEXT_PUBLIC_APP_URL=https://YOUR-PROJECT.vercel.app
+```
+
+Then redeploy and verify:
+
+- `https://YOUR-PROJECT.vercel.app/api/health` → `{ "ok": true, "db": "connected" }`
+- `https://YOUR-PROJECT.vercel.app/dev-login` → lawyer / client buttons work
+
+Optional: add GitHub secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `DATABASE_URL`, `NEXT_PUBLIC_APP_URL` to enable automatic deploys via Actions.
+
 ## Production URL
 
 After Vercel deploy, replace `YOUR_VERCEL_URL` below:

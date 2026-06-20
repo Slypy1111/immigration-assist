@@ -22,15 +22,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Pull Vercel environment
-        if: env.VERCEL_TOKEN != ''
-        run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
+      - name: Production build (requires DATABASE_URL secret)
+        if: secrets.DATABASE_URL != ''
         run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -39,18 +32,24 @@ jobs:
           MOCK_AI: "true"
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
 
+      - name: Pull Vercel environment
+        if: secrets.VERCEL_TOKEN != ''
+        run: npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
       - name: Deploy to Vercel
-        if: env.VERCEL_TOKEN != ''
+        if: secrets.VERCEL_TOKEN != '' && secrets.DATABASE_URL != ''
         run: npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy skipped
-        if: env.VERCEL_TOKEN == ''
+      - name: Manual deploy instructions
+        if: secrets.VERCEL_TOKEN == '' || secrets.DATABASE_URL == ''
         run: |
-          echo "Set GitHub secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, DATABASE_URL, NEXT_PUBLIC_APP_URL"
-          echo "Or import manually: https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSlypy1111%2Fimmigration-assist"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          echo "::notice title=Manual Vercel deploy required::Import https://github.com/Slypy1111/immigration-assist in Vercel and set DATABASE_URL, AUTH_MODE, MOCK_AI, NEXT_PUBLIC_APP_URL"
+          echo "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSlypy1111%2Fimmigration-assist"
